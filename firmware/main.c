@@ -50,6 +50,8 @@ static uint8_t ret_buf[RET_RINGBUFFER_SIZE_RX][AVA2_P_DATA_LEN];
 static volatile unsigned int ret_produce = 0;
 static volatile unsigned int ret_consume = 0;
 
+static struct mm_work mm_work;
+
 void delay(unsigned int ms)
 {
 	unsigned int i;
@@ -368,7 +370,6 @@ static int get_pkg(struct mm_work *mw)
 
 int main(int argv, char **argc)
 {
-	struct mm_work mm_work;
 	struct work work;
 	struct result result;
 
@@ -415,7 +416,7 @@ int main(int argv, char **argc)
 		if (!g_new_stratum)
 			continue;
 
-		if (alink_txbuf_count() < (24 * 5)) {
+		if (alink_txbuf_count() < (24 * 4)) {
 			if (g_clock_conf_count < 100)
 				g_clock_conf_count++;
 
@@ -426,6 +427,13 @@ int main(int argv, char **argc)
 
 			mm_work.nonce2++;
 			miner_init_work(&mm_work, &work);
+			alink_send_work(&work);
+		}
+
+		if (alink_txbuf_count() < (24 * 5)) {
+			roll_work(&work);
+			alink_send_work(&work);
+			roll_work(&work);
 			alink_send_work(&work);
 		}
 

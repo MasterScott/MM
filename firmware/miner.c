@@ -362,3 +362,19 @@ int test_nonce(struct mm_work *mw, struct result *ret)
 
 	return fulltest(hash1, mw->target);
 }
+
+void roll_work(struct work *work)
+{
+	uint32_t *work_ntime;
+	uint32_t ntime;
+	uint8_t data[12];
+
+	memcpy(data, work->data + 32, 12);
+
+	work_ntime = (uint32_t *)(data + 4);
+	ntime = bswap_32(*work_ntime);
+	ntime++;
+	*work_ntime = ntime;
+
+	memcpy(work->data + 32, data, 12);
+}

@@ -70,5 +70,6 @@ int test_nonce(struct mm_work *mw, struct result *ret);
 
 void set_asic_freq(uint32_t value);
 uint32_t get_asic_freq();
+void roll_work(struct work *work);
 
 #endif /* __MINER_H__ */
