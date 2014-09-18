@@ -41,7 +41,8 @@ static int g_local_work = 0;
 static int g_hw_work = 0;
 
 uint32_t g_clock_conf_count = 0;
-
+uint16_t temperature0[10] = {0};
+uint16_t temperature1[10] = {0};
 
 static uint32_t g_nonce2_offset = 0;
 static uint32_t g_nonce2_range = 0xffffffff;
@@ -98,7 +99,7 @@ static void encode_pkg(uint8_t *p, int type, uint8_t *buf, unsigned int len)
 		memcpy(data, buf, len);
 		break;
 	case AVA2_P_STATUS:
-		tmp = read_temp0() << 16 | read_temp1();
+		tmp = read_temp0(temperature0) << 16 | read_temp1(temperature1);
 		memcpy(data + 0, &tmp, 4);
 
 		tmp = read_fan0() << 16 | read_fan1();
@@ -248,7 +249,7 @@ static int decode_pkg(uint8_t *p, struct mm_work *mw)
 	case AVA2_P_REQUIRE:
 		break;
 	case AVA2_P_SET:
-		if (read_temp0() >= IDLE_TEMP || read_temp1() >= IDLE_TEMP)
+		if (read_temp0(temperature0) >= IDLE_TEMP || read_temp1(temperature1) >= IDLE_TEMP)
 			break;
 
 		memcpy(&tmp, data, 4);
@@ -416,7 +417,7 @@ int main(int argv, char **argc)
 	iic_addr_set(g_module_id);
 
 	debug32("%d:MM-%s\n", g_module_id, MM_VERSION);
-	debug32("T:%d, %d\n", read_temp0(), read_temp1());
+	debug32("T:%d, %d\n", read_temp0(temperature0), read_temp1(temperature1));
 
 #ifdef DEBUG_IIC_TEST
 	extern void iic_test(void);
@@ -439,7 +440,7 @@ int main(int argv, char **argc)
 
 		wdg_feed((CPU_FREQUENCY / 1000) * 2);
 		if ((!timer_read(0) && g_new_stratum) ||
-		    (read_temp0() >= IDLE_TEMP && read_temp1() >= IDLE_TEMP)) {
+		    (read_temp0(temperature0) >= IDLE_TEMP && read_temp1(temperature1) >= IDLE_TEMP)) {
 			g_new_stratum = 0;
 			g_local_work = 0;
 			g_hw_work = 0;
